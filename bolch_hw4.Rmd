@@ -10,6 +10,8 @@ require(ggplot2)
 
 ```
 
+https://github.com/ebolch/es207_hw4
+
 ## Helsel & Hirsch 3.1 & 3.4
 
 <span style="color:crimson">3.1 Compute both nonparametric and parametric 95% interval estimates for the median of
