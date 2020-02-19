@@ -1,0 +1,173 @@
+---
+title: "bolch_hw4"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+require(tidyverse)
+require(ggplot2)
+
+```
+## Helsel & Hirsch 3.1 & 3.4
+
+<span style="color:crimson">3.1 Compute both nonparametric and parametric 95% interval estimates for the median of
+the granodiorite data of exercise 2.3. Which is more appropriate for these data? Why?</span>
+
+```{r}
+#Chloride Concentrations (mg/L)
+my.data <- tibble(
+  Gran = c(6.0, 0.4, 0.4, 0.7, 0.8, 6.0, 5.0, 0.6, 1.2, 0.3, 0.2, 0.5, 0.5, 10, 0.2, 0.2, 1.7, 3.0),
+  Qtz_M = c(1.0, 0.2, 1.2, 1.0, 0.3, 0.1, 0.1, 0.4, 3.2, 0.3, 0.4, 1.8, 0.9, 0.1, 0.2, 0.3, 0.5, NA))
+hist(my.data$Gran)
+qqnorm(my.data$Gran)
+qqline(my.data$Gran)
+```
+
+Non-Parametric
+
+```{r}
+#Non-Parametric Prediction Interval
+mednppi <- function(x,y){# requires data vector and alpha
+  x <- sort(x)
+  print(x)
+  med <- median(x)
+  print(med)
+  alpha <- y
+  xprime <- qbinom(alpha/2, size = length(x), prob = 0.5)# 0.5 is for median of small sample sizes
+  Rl <- xprime + 1
+  Ru <- length(x) - xprime
+  print(paste("True median falls within", x[Rl], "to", x[Ru], "at", 100*(1-alpha), "% Confidence Interval"))
+}
+
+mednppi(my.data$Gran, 0.05)
+
+
+
+
+```
+
+Parametric
+
+```{r}
+#t values required. values calculated from t.test(function of mean?) were different book example
+medppi <- function(x,a,t){ 
+  alpha <- a
+  n <- length(x)
+  y <- log(x)
+  ybar <- mean(y)
+  GM<- exp(ybar) #Geometric Mean of Log transform is approximation of median if they are symmetric
+  s <- sd(y)
+  Rl <- exp(ybar-t*sqrt(s^2/n))
+  Ru <- exp(ybar+t*sqrt(s^2/n))
+  print(paste("True median falls within", Rl, "to", Ru, "at", 100*alpha, "% Confidence Interval"))
+}
+t<- 2.110 #for .05 two tail, df = 17
+medppi(my.data$Gran, 0.95, t)
+
+hist(log(my.data$Gran))
+qqnorm(log(my.data$Gran))
+qqline(log(my.data$Gran))
+```
+
+A non-parametric interval estimate is probably more appropriate for this data due to its skewed distribution. However the distribution of the log appears to be a normal distribution, so it's also possible to use the parametric interval estimate.
+
+<span style="color:crimson">3.4 Construct the most appropriate 95 percent interval estimates for the mean and median
+annual streamflows for the Conecuh River at Brantley, Alabama (data in Appendix C2).</span>
+
+```{r}
+C2 <- read_csv("./data/Conecuh_River_apxc2.csv")
+head(C2)
+hist(C2$`Flow (cfs)`)
+qqnorm(C2$`Flow (cfs)`)
+qqline(C2$`Flow (cfs)`)
+```
+Median 
+```{r}
+mednppi <- function(x,y){# requires data vector and alpha
+  x <- sort(x)
+  print(x)
+  med <- median(x)
+  print(med)
+  alpha <- y
+  xprime <- qbinom(alpha/2, size = length(x), prob = 0.5)# 0.5 is for median of small sample sizes
+  Rl <- xprime + 1
+  Ru <- length(x) - xprime
+  print(paste("True median falls within", x[Rl], "to", x[Ru], "at", 100*(1-alpha), "% Confidence Interval"))
+}
+
+mednppi(C2$`Flow (cfs)`, 0.05)
+```
+Mean 
+```{r}
+t.test(C2$`Flow (cfs)`,conf.level = 0.95)
+```
+Because the data are non-parametric, a non-parametric interval estimate using rank sum is appropriate for determining the median of the data. As for the mean, the data are somewhat symmetric, meaning that the t-test function can be used to generate an interval from the data without a transformation.
+
+## Qian Ch.4 Problem 4
+
+<span style="color:crimson">The Everglades wetland ecosystems are phosphorus limited. After the Everglades Agriculture Areas (EAA) were established (enabled by a series of federal government constructed water diversion systems for draining part of the Everglades wetland), phosphorus-rich agriculture runoff reached the Everglades wetland and resulted in dramatic changes in parts of the Everglades wetlands. To better protect the Everglades, many studies were conducted in the late 1980s and the 1990s to learn about the effects of phosphorus enrichment in the Everglades. One study focused on estimating the background level of phosphorus concentration. To identify which site is not affected by the agriculture runoff, researchers measured phosphatase activity (APA) in sites known to be affected (TP > 30 microg/L) and sites that are unaffected by agriculture runoff. Phosphatase is an enzyme produced by organisms in low P environment. Because producing this enzyme costs energy, organisms do not produce them when bio-available phosphorus are present. As a result, high APA is an indicator of P limitation. The data file apa.s contains both APA and TP concentrations. It can be imported into R using function source.</span>
+
+```{r}
+source("./data/apa.s")
+```
+
+<span style="color:crimson">(a) Compare the distributions of APA from sites with TP > 30 microg/L and APA from sites with TP < 30 microg/L using graphical tools we learned in Chapter 3.</span>
+
+```{r}
+hi.tp <- filter_at(apa.dat, vars(tp), ~. >30)
+low.tp <- filter_at(apa.dat, vars(tp), ~. <30)
+qqplot(hi.tp$apa,low.tp$apa, xlab = "TP > 30mcg/L", ylab = "TP < 30 mcg/L", main = "Measured Phosphatase Activity")
+abline(0,1)
+
+hist(hi.tp$apa)
+hist(low.tp$apa)
+qqnorm(hi.tp$apa)
+qqline(hi.tp$apa)
+qqnorm(low.tp$apa)
+qqline(low.tp$apa)
+
+```
+From the first QQplot of TP > 30 vs TP < 30, its clear the distributions are multiplicative, indicating that a log transform could possibly be used to change it to additive, or that a non-parametric test is needed to adequately compare the data.
+
+
+<span style="color:crimson">(b) What is the nature of difference between the two populations of APA?</span>
+
+```{r}
+sd(hi.tp$apa)
+sd(low.tp$apa)
+ltlow <- log(low.tp$apa)
+lthi <- log(hi.tp$apa)
+sd(ltlow)
+sd(lthi)
+qqplot(lthi,ltlow, xlab = "TP > 30mcg/L", ylab = "TP < 30 mcg/L", main = "Log Transformed Measured Phosphatase Activity")
+abline(0,1)
+```
+
+Upon further examination, a log transform still appears to yield a multiplicative distribution between the two sets of samples, though greatly reduced from before, and the samples have a different standard deviation, therefore, the differences in means between the two populations is not descriptive of the entire difference between them. 
+
+<span style="color:crimson">(c) Use an appropriate test to determine whether the difference is statistically significant and describe the result in non-technical terms.</span>
+
+```{r}
+require(exactRankTests)
+wilcox.exact(low.tp$apa, hi.tp$apa, conf.int = T)
+```
+
+Based on the observations of above, a non-parametric test would probably be best to determine the difference between the sample populations. Using an Exact Wilcoxon rank sum test, it's shown with very high confidence that the null hypothesis that the two population sample distributions are the same is disproven.  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
