@@ -3,6 +3,9 @@
 # 2/27/2020
 # https://github.com/ebolch/es207_hw4
 
+# Erik, you did a great job in the most efficient way. 
+# And I could not find any code or script that I could improve it. 
+# Thank you for your modification on my code, I learned a lot  
 # Required Packages
 require(tidyverse)
 require(ggplot2)
@@ -83,5 +86,3 @@ t.test(C2$`Flow (cfs)`,conf.level = 0.95)
 #sum is appropriate for determining the median of the data. As for the mean, the 
 #data are somewhat symmetric, meaning that the t-test function can be used to 
 #generate an interval from the data without a transformation.
-
-
